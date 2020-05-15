@@ -6,6 +6,6 @@ LABEL author="baochen zhang" email="rainstorm.me@outlook.com"
 
 SHELL [ "/bin/bash", "-c" ]
 
-RUN yum makecache && yum -y update && yum -y install wget telnet
+RUN yum makecache && yum -y update && yum -y install wget telnet gcc-c++ make less man sed openssl
 
 ENV SOFT_ROOT_DIR=/opt
