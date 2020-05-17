@@ -8,3 +8,5 @@ RUN ln -s ${SOFT_ROOT_DIR}/redis/redis-${REDIS_VERSION} ${SOFT_ROOT_DIR}/redis/d
     cd ${SOFT_ROOT_DIR}/redis/default && make -j4 install && redis-server --version
 
 EXPOSE 6379
+
+ENTRYPOINT [ "redis-server" ]

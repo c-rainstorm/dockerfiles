@@ -1,13 +1,14 @@
 #!/bin/bash
 
-# ./run.sh --tag=5.0.9
+# ./run.sh --tag=5.0.9 --network=sparrow
 
 function usage() {
-    echo "./run.sh [-t[version]] [--tag=[version]] [options]"
+    echo "./run.sh [-t[version]] [--tag=[version]] [--network=] [options]"
     echo ""
     echo "[option]"
     echo ""
     echo "-t --tag=[value]      用于运行指定版本的 Redis"
+    echo "-t --network=[value]  用于指定容器运行的网络"
     echo "-h --help             帮助文档"
     echo "                   "
     echo "[Example]          "
@@ -18,6 +19,7 @@ function usage() {
 }
 
 tag=""
+NETWORK=""
 while getopts t:h-: opt;do
     case $opt in
         -)
@@ -28,6 +30,9 @@ while getopts t:h-: opt;do
                     ;;
                 tag=*)
                     tag=${OPTARG#*=}
+                    ;;
+                network=*)
+                    NETWORK=${OPTARG#*=}
                     ;;
             esac
             ;;
@@ -94,7 +99,8 @@ echo "使用 ${REDIS_PASS_FILE} 配置密码： --requirepass " '${REDIS_PASS_FI
 REDIS_RUNTIME_CONFIG_FLAGS="${REDIS_RUNTIME_CONFIG_FLAGS} --requirepass `cat ${REDIS_PASS_FILE}`"
 
 echo "starting container [redis_${tag}]"
-docker run -d -P --name redis_${tag} rainstorm/redis:${tag}  redis-server ${REDIS_RUNTIME_CONFIG_FLAGS}
+docker run -d -P --network=${NETWORK} --name redis_${tag} rainstorm/redis:${tag} ${REDIS_RUNTIME_CONFIG_FLAGS}
 echo "done"
 
+echo "container ip: `docker inspect --format='{{ .NetworkSettings.Networks.'${NETWORK}'.IPAddress }}' redis_${tag}`"
 echo "binding local port: `docker port redis_${tag} | awk -F: '{print $NF}'`"
