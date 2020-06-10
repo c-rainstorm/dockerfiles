@@ -1,3 +1,5 @@
 #!/bin/bash
 
-docker build -t rainstorm/rocketmq-ns:4.7.0 .
+source ../../setenv.sh
+
+docker build -t ${DOCKER_REPOSITORY}/rocketmq-ns:4.7.0 .

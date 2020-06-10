@@ -2,6 +2,15 @@
 
 source config.sh
 
+function createNetwork() {
+    network=$1
+    if [ `docker network ls --filter=name=sparrow -q | wc -l` -eq 0 ]; then
+        echo "Creating network [${network}]"
+        docker network create ${network}
+        echo "done"
+    fi
+}
+
 function stopContainer(){
     CONTAINER_NAME=$1
     if [ `docker container ls --filter=name=${CONTAINER_NAME} -q | wc -l` -gt 0 ]; then
@@ -24,6 +33,8 @@ function startNameServer(){
     docker run -P -d --network=${NETWORK} --name=${CONTAINER_NAME} ${ROCKETMQ_NS_IMAGE}
     echo "done"
 }
+
+createNetwork ${NETWORK}
 
 # 镜像内部决定，不可配置
 NAME_SERVER_PORT=9876

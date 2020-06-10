@@ -27,7 +27,7 @@
 ROCKETMQ_NS_IMAGE=rainstorm/rocketmq-ns:4.7.0
 ROCKETMQ_BROKER_IMAGE=rainstorm/rocketmq-broker:4.7.0
 
-# 网络，docker 网络，需要事先创建一个 sparrow 网络
+# 网络，docker 网络，若当前没有，会自动创建
 NETWORK=sparrow
 
 # nameServer 配置

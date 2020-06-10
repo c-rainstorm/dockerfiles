@@ -1,6 +1,8 @@
+source ../setenv.sh
+
 # rocketmq 镜像
-ROCKETMQ_NS_IMAGE=rainstorm/rocketmq-ns:4.7.0
-ROCKETMQ_BROKER_IMAGE=rainstorm/rocketmq-broker:4.7.0
+ROCKETMQ_NS_IMAGE=${DOCKER_REPOSITORY}/rocketmq-ns:4.7.0
+ROCKETMQ_BROKER_IMAGE=${DOCKER_REPOSITORY}/rocketmq-broker:4.7.0
 
 # 网络
 NETWORK=sparrow
