@@ -55,14 +55,12 @@ if [ ${#tag} -eq 0 ]; then
     exit 1
 fi
 
-if [ `docker images rainstorm/redis:${tag} -q |wc -l` -eq 0 ]; then
-    echo "rainstorm/redis:${tag} 镜像不存在，请先使用 ./build.sh 构建"
-    echo ""
-    ./build.sh -h
-    exit 0
+if [ `docker images redis:${tag} -q |wc -l` -eq 0 ]; then
+    docker pull redis:${tag}
 fi
 
-REDIS_PASS_FILE=~/.redis_password
+mkdir -p ~/.password
+REDIS_PASS_FILE=~/.password/redis
 echo "######################################################"
 if [ ! -e ${REDIS_PASS_FILE} ] || [ `cat ${REDIS_PASS_FILE} | wc -l` -eq 0 ]; then
     openssl rand -base64 10 > ${REDIS_PASS_FILE}
@@ -72,15 +70,17 @@ else
 fi
 echo "######################################################"
 
-if [ `docker container ls --filter=name=redis_${tag} -q | wc -l` -gt 0 ]; then
-    echo "stopping container [redis_${tag}]"
-    docker container stop redis_${tag}
+NAME=single_redis_${tag}
+
+if [ `docker container ls --filter=name=${NAME} -q | wc -l` -gt 0 ]; then
+    echo "stopping container [${NAME}]"
+    docker container stop ${NAME}
     echo "done"
 fi
 
-if [ `docker container ls -a --filter=name=redis_${tag} -q | wc -l` -gt 0 ]; then
-    echo "removing container [redis_${tag}]"
-    docker container rm redis_${tag}
+if [ `docker container ls -a --filter=name=${NAME} -q | wc -l` -gt 0 ]; then
+    echo "removing container [${NAME}]"
+    docker container rm ${NAME}
     echo "done"
 fi
 
@@ -98,9 +98,10 @@ REDIS_RUNTIME_CONFIG_FLAGS="${REDIS_RUNTIME_CONFIG_FLAGS} --protected-mode no"
 echo "使用 ${REDIS_PASS_FILE} 配置密码： --requirepass " '${REDIS_PASS_FILE}'
 REDIS_RUNTIME_CONFIG_FLAGS="${REDIS_RUNTIME_CONFIG_FLAGS} --requirepass `cat ${REDIS_PASS_FILE}`"
 
-echo "starting container [redis_${tag}]"
-docker run -d -P --network=${NETWORK} --name redis_${tag} rainstorm/redis:${tag} ${REDIS_RUNTIME_CONFIG_FLAGS}
+echo "starting container [${NAME}]"
+docker run -d --network=${NETWORK} --name $NAME redis:${tag} ${REDIS_RUNTIME_CONFIG_FLAGS}
 echo "done"
 
-echo "container ip: `docker inspect --format='{{ .NetworkSettings.Networks.'${NETWORK}'.IPAddress }}' redis_${tag}`"
-echo "binding local port: `docker port redis_${tag} | awk -F: '{print $NF}'`"
+echo "container ip: `docker inspect --format='{{ .NetworkSettings.Networks.'${NETWORK}'.IPAddress }}' $NAME`"
+echo "binding local port: `docker port $NAME | awk -F: '{print $NF}'`"
+# docker inspect --format='{{ .NetworkSettings.Networks.sparrow.IPAddress }}' docker-sinatra
