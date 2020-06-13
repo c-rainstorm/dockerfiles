@@ -2,4 +2,4 @@
 
 source ../../setenv.sh
 
-docker build -t ${DOCKER_REPOSITORY}/rocketmq-broker:4.7.0 .
+docker build -t ${DOCKER_REPOSITORY_NAMESPACE}/rocketmq-broker:4.7.0 .

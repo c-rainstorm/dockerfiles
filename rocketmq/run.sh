@@ -1,40 +1,17 @@
 #/bin/bash
 
 source config.sh
+source ${DOCKERFILES_ROOT}/tools.sh
 
-function createNetwork() {
-    network=$1
-    if [ `docker network ls --filter=name=sparrow -q | wc -l` -eq 0 ]; then
-        echo "Creating network [${network}]"
-        docker network create ${network}
-        echo "done"
-    fi
-}
-
-function stopContainer(){
-    CONTAINER_NAME=$1
-    if [ `docker container ls --filter=name=${CONTAINER_NAME} -q | wc -l` -gt 0 ]; then
-        echo "stopping container [${CONTAINER_NAME}]"
-        docker container stop ${CONTAINER_NAME}
-        echo "done"
-    fi
-
-    if [ `docker container ls -a --filter=name=${CONTAINER_NAME} -q | wc -l` -gt 0 ]; then
-        echo "removing container [${CONTAINER_NAME}]"
-        docker container rm ${CONTAINER_NAME}
-        echo "done"
-    fi
-}
+createNetwork ${NETWORK}
 
 function startNameServer(){
     CONTAINER_NAME=$1
     stopContainer ${CONTAINER_NAME}
     echo "Starting name server [${CONTAINER_NAME}]"
-    docker run -P -d --network=${NETWORK} --name=${CONTAINER_NAME} ${ROCKETMQ_NS_IMAGE}
+    docker run -d --network=${NETWORK} --name=${CONTAINER_NAME} ${ROCKETMQ_NS_IMAGE}
     echo "done"
 }
-
-createNetwork ${NETWORK}
 
 # 镜像内部决定，不可配置
 NAME_SERVER_PORT=9876
@@ -121,3 +98,27 @@ do
     startBrokerSet ${NSLIST} ${BROKER_CLUSTER_NAME} ${i}
     let "i++"
 done
+
+CONSOLE_IMAGE_NAME=styletang/rocketmq-console-ng
+
+stopContainer ${ROCKETMQ_CONSOLE_CONTAINER_NAME}
+
+if [ ${ROCKETMQ_CONSOLE_ENABLE} -gt 0 ]; then
+    echo "Starting rocketmq console"
+
+    ensureImageExsit ${CONSOLE_IMAGE_NAME}
+    stopContainer ${ROCKETMQ_CONSOLE_CONTAINER_NAME}
+
+    docker run -d --name ${ROCKETMQ_CONSOLE_CONTAINER_NAME} \
+        -p ${ROCKETMQ_CONSOLE_HOST_PORT}:8080 \
+        --network=${NETWORK} \
+        -e "JAVA_OPTS=-Drocketmq.namesrv.addr=${NSLIST} -Dcom.rocketmq.sendMessageWithVIPChannel=false" \
+        ${CONSOLE_IMAGE_NAME}
+    if [ $? -eq 0 ]; then
+        echo "try to open http://localhost:${ROCKETMQ_CONSOLE_HOST_PORT}/ in brower"
+        openUrlInBrowser http://localhost:${ROCKETMQ_CONSOLE_HOST_PORT}/
+    fi
+
+    echo "done"
+fi
+

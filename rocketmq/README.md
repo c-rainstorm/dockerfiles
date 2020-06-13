@@ -17,15 +17,16 @@
 ./run.sh
 ```
 
+默认情况下，运行完毕没有任何错误的情况下，会启动一个 3NameServer，2主2从 Broker集群，1Console，脚本会自动在浏览器内打开 Console 的控制页面。
+
 ## 自定义集群
 
 `config.sh` 中定义了脚本中可以自定义的配置
 
 ```bash
 # rocketmq 镜像
-# 如果 build image 时替换了对应的镜像名称，这里也需要进行替换
-ROCKETMQ_NS_IMAGE=rainstorm/rocketmq-ns:4.7.0
-ROCKETMQ_BROKER_IMAGE=rainstorm/rocketmq-broker:4.7.0
+ROCKETMQ_NS_IMAGE=${DOCKER_REPOSITORY_NAMESPACE}/rocketmq-ns:4.7.0
+ROCKETMQ_BROKER_IMAGE=${DOCKER_REPOSITORY_NAMESPACE}/rocketmq-broker:4.7.0
 
 # 网络，docker 网络，若当前没有，会自动创建
 NETWORK=sparrow
@@ -50,13 +51,17 @@ BROKER_CLUSTER_NAME=DefaultCluster
 ## 主节点容器名后缀为 ${BROKER_NAME_PREFIX}[1-MASTER_NUM]-master
 ## 从节点容器名后缀为 ${BROKER_NAME_PREFIX}[1-MASTER_NUM]-slave-[1-SLAVE_NUM_EACH_MASTER]
 BROKER_NAME_PREFIX="${BROKER_CLUSTER_NAME}-broker-"
+
+## RocketMQ console
+### 启用UI控制台
+ROCKETMQ_CONSOLE_ENABLE=1
+### 控制台容器名
+ROCKETMQ_CONSOLE_CONTAINER_NAME=rocketmq-console
 ```
 
 ## 主机端口映射
 
-默认情况下，NameServer 的 9876 会暴露到宿主机的随机端口，Broker不向宿主机暴露端口，仅在 Docker 内网中可访问。
-
-Tips: 因为本地不安装 `mqadmin`，所以，查看集群状态一般 `exec` 到 NameServer 内部，使用容器里的 `mqadmin` 工具，后面考虑看能不能加一个监控看板，从宿主机直接浏览器查看集群状态。
+默认情况下，NameServer 和 Broker不向宿主机暴露端口，仅在 Docker 内网中可访问，用户通过 Console 操作 MQ 集群。
 
 ## 深度定制
 
